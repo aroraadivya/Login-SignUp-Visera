@@ -3,10 +3,8 @@ const mongoose = require("mongoose");
 const app = express();
 const PORT = 3000;
 
-// Middleware
 app.use(express.json());
 
-// MongoDB Connection
 mongoose
   .connect("mongodb://localhost:27017/LoginSignup", {
     useNewUrlParser: true,
@@ -36,15 +34,25 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 
 // Routes
-// Signup Route
+// Signup Route with Confirm Password
 app.post("/signup", async (req, res) => {
-  const { name, password } = req.body;
+  const { name, password, confirmPassword } = req.body;
 
-  if (!name || !password) {
-    return res.status(400).json({ error: "Name and password are required." });
+  // Validate input fields
+  if (!name || !password || !confirmPassword) {
+    return res.status(400).json({ error: "Name, password, and confirm password are required." });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "Passwords do not match." });
   }
 
   try {
+   
+    const existingUser = await User.findOne({ name });
+    if (existingUser) {
+      return res.status(409).json({ error: "User with this name already exists." });
+    }
     const newUser = new User({ name, password });
     await newUser.save();
     res.status(201).json({ message: "User registered successfully." });
@@ -53,7 +61,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// Login Route
+
 app.post("/login", async (req, res) => {
   const { name, password } = req.body;
 
