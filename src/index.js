@@ -28,19 +28,25 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 7,
   },
+  email:{
+    type:String,
+    required:true,
+    unique:true,
+    match:/^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  },
 });
 
 // User Model
 const User = mongoose.model("User", userSchema);
 
 // Routes
-// Signup Route with Confirm Password
+// Signup Route
 app.post("/signup", async (req, res) => {
-  const { name, password, confirmPassword } = req.body;
+  const { name, email, password, confirmPassword } = req.body;
 
   // Validate input fields
-  if (!name || !password || !confirmPassword) {
-    return res.status(400).json({ error: "Name, password, and confirm password are required." });
+  if (!name || !email || !password || !confirmPassword) {
+    return res.status(400).json({ error: "Name, email, password, and confirm password are required." });
   }
 
   if (password !== confirmPassword) {
@@ -48,12 +54,14 @@ app.post("/signup", async (req, res) => {
   }
 
   try {
-   
-    const existingUser = await User.findOne({ name });
-    if (existingUser) {
-      return res.status(409).json({ error: "User with this name already exists." });
+    // Check if email is already registered
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({ error: "Email is already registered." });
     }
-    const newUser = new User({ name, password });
+
+    // Create and save the new user
+    const newUser = new User({ name, email, password });
     await newUser.save();
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
@@ -61,16 +69,17 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-
+// Login Route
 app.post("/login", async (req, res) => {
-  const { name, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!name || !password) {
-    return res.status(400).json({ error: "Name and password are required." });
+  // Validate input fields
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required." });
   }
 
   try {
-    const user = await User.findOne({ name });
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({ error: "User not found." });
