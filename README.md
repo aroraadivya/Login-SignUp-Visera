@@ -1,6 +1,8 @@
 # Login-SignUp-Visera
 
-Main Contributors in this Repo is Palak and Divya.
+Main Repository
+
+Contributors in this Repository is Palak, Divya and Himani.
 
  Our First Repository link is - https://github.com/aroraadivya/Login-SignUp-IOS-backend.git
 
